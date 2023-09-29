@@ -56,8 +56,8 @@ data_json = glob("../dariah-elastic-data/work/eebo/*.ndjson")
 # index doc range - this gives more detailed error messages than the bulk API
 # test_data = read_ndjson(data_json[0])
 # for i in range(0, 100):
-#     doc = test_data[i]
-#     resp = client.index(index=index_name, id=doc["file_id"].replace("_", "-").replace(".", "-"), document=doc)
+# doc = inputdata[0]
+# resp = client.index(index=index_name, id=doc["_id"], document=doc)
 #     print(str(i) + " " + resp['result'])
 
 
