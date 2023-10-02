@@ -1,7 +1,7 @@
 from smart_open import open
 from elasticsearch import Elasticsearch, helpers
 import json
-from lib.utils import read_elastic_pwd
+from lib.utils import read_elastic_pwd, log_line, read_indexed_log
 
 
 def get_allas_url_ndjson(allas_url, add_id=True):
@@ -121,11 +121,22 @@ mapping = {
 # create the index if it doesn't exist
 # client.indices.create(index=index_name, mappings=mapping)
 
+already_indexed = read_indexed_log('legentic_indexed.log')
+
 # index bulk - updates if id already present.
 i = 0
 for item in allas_items:
-    print(str(i) + " - " + item)
-    inputdata = get_allas_url_ndjson(item)
-    input_remapped = remap_bulk_batch(inputdata, remappings)
-    helpers.bulk(client, input_remapped, index=index_name)
+    if item not in already_indexed:
+        print(str(i) + " - " + item)
+        inputdata = get_allas_url_ndjson(item)
+        input_remapped = remap_bulk_batch(inputdata, remappings)
+        helpers.bulk(client, input_remapped, index=index_name)
+        log_line(logfile="legentic_indexed.log", line=item)
+    else:
+        print("Skipping, already indexed: " + str(i) + " - " + item)
     i += 1
+
+
+for item in allas_items[:3277]:
+    log_line(logfile="legentic_indexed.log", line=item)
+

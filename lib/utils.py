@@ -32,3 +32,15 @@ def read_elastic_pwd(pwd_file):
     with open(pwd_file, 'r') as f:
         pwd = f.read().strip()
     return pwd
+
+
+def log_line(logfile, line):
+    with open(logfile, 'a') as f:
+        f.write(line + "\n")
+
+
+def read_indexed_log(logfile):
+    with open(logfile, 'r') as f:
+        lines = f.readlines()
+    lines = [line.strip() for line in lines]
+    return lines
