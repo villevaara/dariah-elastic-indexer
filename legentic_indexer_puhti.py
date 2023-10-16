@@ -13,7 +13,7 @@ def get_allas_url_ndjson(allas_url, add_id=True):
         for doc in docs:
             thisdoc = doc['fields']
             if add_id:
-                thisdoc['_id'] = doc['fields']['url']
+                thisdoc['_id'] = doc['fields']['url'].replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "")
             retdocs.append(thisdoc)
     return retdocs
 
@@ -135,8 +135,8 @@ i = 0
 for item in allas_items:
     if item not in already_indexed:
         print(str(i) + " - " + item)
-        inputdata = get_allas_url_ndjson(item)
-        input_remapped = remap_bulk_batch(inputdata, remappings)
+        inputdata = get_allas_url_ndjson(allas_url=item, add_id=True)
+        input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
         helpers.bulk(client, input_remapped, index=index_name)
         log_line(logfile="legentic_indexed.log", line=item)
     else:
