@@ -135,7 +135,7 @@ already_indexed = read_indexed_log('legentic_indexed.log')
 
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
 parser.add_argument('--start', type=int, help='First iter to process.')
-parser.add_argument('--end', type=int, help='Last iter to process.')
+parser.add_argument('--end', type=int, help='First iter to not process.')
 parser.add_argument('--reindex', dest='reindex', action='store_true', help='Do not skip already indexed.')
 parser.add_argument('--no-reindex', dest='reindex', action='store_false', help='Skip indexed. Default.')
 parser.set_defaults(reindex=False)
