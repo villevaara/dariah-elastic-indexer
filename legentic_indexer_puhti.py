@@ -59,7 +59,7 @@ with open('data/legentic_remappings.json', 'r') as jsonfile:
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
 # Create the client instance
 # test env client
-client = Elasticsearch("https://ds-es-dev.rahtiapp.fi:443",
+client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
 # client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
 #                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
@@ -126,7 +126,7 @@ index_settings = {
 }
 
 # create the index if it doesn't exist
-client.indices.create(index=index_name, mappings=mapping, settings=index_settings)
+# client.indices.create(index=index_name, mappings=mapping, settings=index_settings)
 
 already_indexed = read_indexed_log('legentic_indexed.log')
 
