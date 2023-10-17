@@ -2,6 +2,7 @@ from smart_open import open
 from elasticsearch import Elasticsearch, helpers
 import json
 from lib.utils import read_elastic_pwd, log_line, read_indexed_log
+import argparse
 
 
 def get_allas_url_ndjson(allas_url, add_id=True):
@@ -130,11 +131,25 @@ index_settings = {
 
 already_indexed = read_indexed_log('legentic_indexed.log')
 
+# Get arguments for start and end index
+
+parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
+parser.add_argument('--start', type=int, help='First iter to process.')
+parser.add_argument('--end', type=int, help='Last iter to process.')
+parser.add_argument('--reindex', dest='reindex', action='store_true', help='Do not skip already indexed.')
+parser.add_argument('--no-reindex', dest='reindex', action='store_false', help='Skip indexed. Default.')
+parser.set_defaults(reindex=False)
+
+args = parser.parse_args()
+
+allas_subset = allas_items[args.start:args.end]
+
 # index bulk - updates if id already present.
 i = 0
-for item in allas_items:
-    if item not in already_indexed:
-        print(str(i) + " - " + item)
+max_i = len(allas_subset) - 1
+for item in allas_subset:
+    if (item not in already_indexed) and (not args.reindex):
+        print(str(i) + " / " + str(max_i) + " - " + item)
         inputdata = get_allas_url_ndjson(allas_url=item, add_id=True)
         input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
         helpers.bulk(client, input_remapped, index=index_name)
