@@ -89,7 +89,7 @@ def timing_test(dataset, subset_size, repetitions):
         helpers.bulk(client, input_remapped, index=index_name)
         res.append(time.perf_counter() - start_time)
     return {
-        'avg_elapsed': round(sum(res) / repetitions, 1),
+        'avg_elapsed': round(sum(res) / repetitions, 2),
         'repetitions': repetitions,
         'bulk_items': subset_size}
 
