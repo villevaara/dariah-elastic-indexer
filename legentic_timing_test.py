@@ -89,23 +89,24 @@ def timing_test(dataset, subset_size, repetitions):
         helpers.bulk(client, input_remapped, index=index_name)
         res.append(time.perf_counter() - start_time)
     return {
-        'avg_elapsed': sum(res) / repetitions,
+        'avg_elapsed': round(sum(res) / repetitions, 1),
         'repetitions': repetitions,
         'bulk_items': subset_size}
 
 
 testset = list(range(100, 20100, 100))
-
 testout = 'test_results/legentic_bulk_size_test.csv'
 fieldnames = ['avg_elapsed', 'repetitions', 'bulk_items']
+reps = 100
 
 with open(testout, 'w') as csvf:
     writer = csv.DictWriter(csvf, fieldnames)
     writer.writeheader()
 
-testres = list()
 for size in testset:
-    res = timing_test(testdata, 100, repetitions=10)
+    print("Testing size: " + str(size) + " repetitions: " + str(reps))
+    res = timing_test(testdata, size, repetitions=reps)
+    print("  > " + str(res['avg_elapsed']) + "s")
     with open(testout, 'a') as csvf:
         writer = csv.DictWriter(csvf, fieldnames)
         writer.writerow(res)
