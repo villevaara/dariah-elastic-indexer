@@ -162,3 +162,11 @@ for item in allas_subset:
 # for item in allas_items[:3277]:
 #     log_line(logfile="legentic_indexed.log", line=item)
 #
+testdata = get_allas_url_ndjson(allas_url=allas_subset[0], add_id=True)
+
+
+def timing_test(dataset, subset_size):
+    input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
+    helpers.bulk(client, input_remapped, index=index_name)
+    log_line(logfile="legentic_indexed.log", line=item)
+
