@@ -95,7 +95,8 @@ def timing_test(dataset, subset_size, repetitions):
 
 
 testset = list(range(100, 20100, 100))
-testout = 'test_results/legentic_bulk_size_test.csv'
+testset2 = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 20000]
+testout = 'test_results/legentic_bulk_size_test2.csv'
 fieldnames = ['avg_elapsed', 'repetitions', 'bulk_items']
 reps = 100
 
@@ -103,7 +104,7 @@ with open(testout, 'w') as csvf:
     writer = csv.DictWriter(csvf, fieldnames)
     writer.writeheader()
 
-for size in testset:
+for size in testset2:
     print("Testing size: " + str(size) + " repetitions: " + str(reps))
     res = timing_test(testdata, size, repetitions=reps)
     print("  > " + str(res['avg_elapsed']) + "s")
