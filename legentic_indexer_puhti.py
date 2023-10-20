@@ -153,11 +153,6 @@ args = parser.parse_args()
 allas_subset = allas_items[args.start:args.end]
 reindex = args.reindex
 
-import time
-
-
-start_time = time.perf_counter()
-
 # index bulk - updates if id already present.
 i = 0
 max_i = len(allas_subset) - 1
@@ -172,19 +167,12 @@ for item in allas_subset:
         print("Skipping, already indexed: " + str(i) + " - " + item)
     i += 1
 
-print(time.perf_counter() - start_time)
 
-
-
-# for item in allas_items[:3277]:
-#     log_line(logfile="legentic_indexed.log", line=item)
+# from tqdm import tqdm
 #
-
-from tqdm import tqdm
-
-testdata = get_allas_url_ndjson(allas_items[6824], add_id=False)
-test_remapped = remap_bulk_batch(items_batch=testdata, remappings=remappings, fix_version=True)
-for item in tqdm(test_remapped[:]):
-    client.index(index=index_name, id=get_version_from_url(item["url"]), document=item)
-
+# testdata = get_allas_url_ndjson(allas_items[6824], add_id=False)
+# test_remapped = remap_bulk_batch(items_batch=testdata, remappings=remappings, fix_version=True)
+# for item in tqdm(test_remapped[:]):
+#     client.index(index=index_name, id=get_version_from_url(item["url"]), document=item)
+#
 

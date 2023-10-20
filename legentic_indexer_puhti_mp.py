@@ -135,7 +135,6 @@ index_settings = {
 already_indexed = read_indexed_log('legentic_indexed.log')
 
 # Get arguments for start and end index
-
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
 parser.add_argument('--start', type=int, help='First iter to process.')
 parser.add_argument('--end', type=int, help='First iter to not process.')
@@ -146,7 +145,7 @@ parser.set_defaults(reindex=False)
 
 args = parser.parse_args()
 
-this_reindex = args.reindex
+reindex = args.reindex
 allas_subset = allas_items[args.start:args.end]
 
 lock = Lock()
