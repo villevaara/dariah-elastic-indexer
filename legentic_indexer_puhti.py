@@ -5,6 +5,11 @@ from lib.utils import read_elastic_pwd, log_line, read_indexed_log
 import argparse
 
 
+def get_version_from_url(url_field):
+    this_id = url_field.replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "")
+    return this_id
+
+
 def get_allas_url_ndjson(allas_url, add_id=True):
     with open(allas_url, encoding='utf-8') as rawfile:
         rawdata = rawfile.read()
@@ -14,7 +19,7 @@ def get_allas_url_ndjson(allas_url, add_id=True):
         for doc in docs:
             thisdoc = doc['fields']
             if add_id:
-                thisdoc['_id'] = doc['fields']['url'].replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "")
+                thisdoc['_id'] = get_version_from_url(doc['fields']['url'])
             retdocs.append(thisdoc)
     return retdocs
 
@@ -111,7 +116,7 @@ mapping = {
         'text.person.size': {"type": "integer"},
         'text.phone.canonized': {"type": "keyword"},
         'text.phone.content': {"type": "text"},
-        'text.url.content': {"type": "keyword"},
+        'text.url.content': {"type": "text"},
         'text.url.length': {"type": "integer"},
         'text.user_mention': {"type": "keyword"},
         'thread.title.content': {"type": "text"},
@@ -125,6 +130,9 @@ mapping = {
 index_settings = {
     'number_of_shards': 10
 }
+
+# deleting an index
+# client.indices.delete(index=index_name)
 
 # create the index if it doesn't exist
 # client.indices.create(index=index_name, mappings=mapping, settings=index_settings)
@@ -143,12 +151,18 @@ parser.set_defaults(reindex=False)
 args = parser.parse_args()
 
 allas_subset = allas_items[args.start:args.end]
+reindex = args.reindex
+
+import time
+
+
+start_time = time.perf_counter()
 
 # index bulk - updates if id already present.
 i = 0
 max_i = len(allas_subset) - 1
 for item in allas_subset:
-    if (item not in already_indexed) and (not args.reindex):
+    if (item not in already_indexed) or (reindex):
         print(str(i) + " / " + str(max_i) + " - " + item)
         inputdata = get_allas_url_ndjson(allas_url=item, add_id=True)
         input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
@@ -158,15 +172,19 @@ for item in allas_subset:
         print("Skipping, already indexed: " + str(i) + " - " + item)
     i += 1
 
+print(time.perf_counter() - start_time)
+
+
 
 # for item in allas_items[:3277]:
 #     log_line(logfile="legentic_indexed.log", line=item)
 #
-testdata = get_allas_url_ndjson(allas_url=allas_subset[0], add_id=True)
 
+from tqdm import tqdm
 
-def timing_test(dataset, subset_size):
-    input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
-    helpers.bulk(client, input_remapped, index=index_name)
-    log_line(logfile="legentic_indexed.log", line=item)
+testdata = get_allas_url_ndjson(allas_items[6824], add_id=False)
+test_remapped = remap_bulk_batch(items_batch=testdata, remappings=remappings, fix_version=True)
+for item in tqdm(test_remapped[:]):
+    client.index(index=index_name, id=get_version_from_url(item["url"]), document=item)
+
 
