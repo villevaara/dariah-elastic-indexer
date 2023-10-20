@@ -157,13 +157,13 @@ def process_queue_item(this_q, client, index_name, remappings, lock, already_ind
     while running:
         try:
             this_item = this_q.get()
-            if item not in already_indexed or reindex:
+            if this_item not in already_indexed or reindex:
                 inputdata = get_allas_url_ndjson(allas_url=this_item, add_id=True)
                 input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
                 helpers.bulk(client, input_remapped, index=index_name)
                 printline = (this_item + " - done.")
                 with lock:
-                    log_line(logfile="legentic_indexed.log", line=item)
+                    log_line(logfile="legentic_indexed.log", line=this_item)
             else:
                 printline = ("!! Skipping " + this_item + " - already indexed.")
             with lock:
