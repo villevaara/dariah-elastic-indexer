@@ -147,6 +147,8 @@ args = parser.parse_args()
 
 reindex = args.reindex
 allas_subset = allas_items[args.start:args.end]
+done_i = 0
+total_i = len(allas_subset)
 
 lock = Lock()
 
@@ -159,14 +161,16 @@ def process_queue_item(this_q, client, index_name, remappings, lock, already_ind
                 inputdata = get_allas_url_ndjson(allas_url=this_item, add_id=True)
                 input_remapped = remap_bulk_batch(items_batch=inputdata, remappings=remappings, fix_version=True)
                 helpers.bulk(client, input_remapped, index=index_name)
-                lock.acquire()
-                print(this_item + " - done")
-                log_line(logfile="legentic_indexed.log", line=item)
-                lock.release()
+                printline = (this_item + " - done.")
+                with lock:
+                    log_line(logfile="legentic_indexed.log", line=item)
             else:
-                lock.acquire()
-                print("!! Skipping " + this_item + " - already indexed.")
-                lock.release()
+                printline = ("!! Skipping " + this_item + " - already indexed.")
+            with lock:
+                global done_i
+                done_i += 1
+                left = total_i - done_i
+                print(printline + " done: " + str(done_i) + " left: " +str(left))
             this_q.task_done()
         except queue.Empty:
             pass
