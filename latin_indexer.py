@@ -3,22 +3,70 @@ import re
 from smart_open import open
 from elasticsearch import Elasticsearch, helpers
 from glob import glob
-import json
-from datetime import datetime
 from lib.utils import read_elastic_pwd
 import math
 from tqdm import tqdm
 import ndjson
+import hashlib
+import argparse
 
 
-def read_id_text(doc_id):
-    txt_f = '../dariah-elastic-data/latin_textreuse/tr_latin_raw_txt/txt/' + doc_id.split('.')[0] + ".txt"
+def read_id_text(txt_path, doc_id):
+    txt_f = txt_path + doc_id.split('.')[0] + ".txt"
     with open(txt_f, 'r') as f:
         text = f.read()
     return text
 
 
-data_df = pd.read_csv('../dariah-elastic-data/latin_textreuse/metadata.csv')
+def read_ndjson(ndjson_file):
+    with open(ndjson_file, 'r') as jsonfile:
+        data = ndjson.load(jsonfile)
+    return data
+
+
+def filter_tr_data_fields(tr_data):
+    for item in tr_data:
+        del item['text1_source']
+        del item['text2_source']
+
+
+def get_tr_id(tr_item):
+    hashstr = (
+            tr_item['text1_id'].split('.')[0] +
+            "-" +
+            tr_item['text2_id'].split('.')[0] +
+            "-" +
+            str(tr_item['text1_text_start']) +
+            "-" +
+            str(tr_item['text1_text_end']) +
+            "-" +
+            str(tr_item['text2_text_start']) +
+            "-" +
+            str(tr_item['text2_text_end'])
+    )
+    hash_object = hashlib.sha256(hashstr.encode('utf-8'))
+    hex_dig = hash_object.hexdigest()
+    return hex_dig
+
+
+def assign_tr_id(tr_data):
+    for item in tr_data:
+        item['_id'] = get_tr_id(item)
+
+
+parser = argparse.ArgumentParser(description='Optional: Input path.')
+parser.add_argument('--input', type=str, help='Input path.')
+
+args = parser.parse_args()
+
+if args.input is None:
+    inputpath = '../dariah-elastic-data/latin_textreuse'
+else:
+    inputpath = args.input
+
+data_df = pd.read_csv(inputpath + '/metadata.csv')
+tr_datafiles = glob(inputpath + '/reuses_jsonl/*.jsonl')
+txt_path = inputpath + '/raw_txt/'
 
 reasonably_populated_columns = list()
 for col in data_df.columns:
@@ -33,14 +81,13 @@ for colname in colnames:
 
 reasonable_df.rename(columns=repdict, inplace=True)
 reasonable_df = reasonable_df.where((pd.notnull(reasonable_df)), None)
-# reasonable_df.fillna("", inplace=True)
 reasonable_dict = reasonable_df.to_dict('records')
 
 
 xml_prefix = "https://a3s.fi/latin-tr/"
 for i in reasonable_dict:
     i['xml_url'] = xml_prefix + i['doc_id']
-    i['txt'] = read_id_text(i['doc_id'])
+    i['txt'] = read_id_text(txt_path, i['doc_id'])
     if math.isnan(i['publication_stmt_date']):
         i['publication_stmt_date'] = None
     else:
@@ -85,55 +132,15 @@ index_name = "latin-textreuse-text"
 # client.indices.delete(index=index_name)
 
 # create the index if it doesn't exist
-client.indices.create(index=index_name, mappings=mapping)
+# client.indices.create(index=index_name, mappings=mapping)
 
+print("Indexing texts.")
 helpers.bulk(client, reasonable_dict, index=index_name)
 # for item in tqdm(reasonable_dict):
 #     client.index(index=index_name, id=(item["doc_id"]), document=item)
 
 
-tr_datafiles = glob('../dariah-elastic-data/latin_textreuse/tr_latin_reuses_jsonl/final_out/*.jsonl')
-
-
-def read_ndjson(ndjson_file):
-    with open(ndjson_file, 'r') as jsonfile:
-        data = ndjson.load(jsonfile)
-    return data
-
-
-def filter_tr_data_fields(tr_data):
-    for item in tr_data:
-        del item['text1_source']
-        del item['text2_source']
-
-
-import hashlib
-
-
-def get_tr_id(tr_item):
-    hashstr = (
-            tr_item['text1_id'].split('.')[0] +
-            "-" +
-            tr_item['text2_id'].split('.')[0] +
-            "-" +
-            str(tr_item['text1_text_start']) +
-            "-" +
-            str(tr_item['text1_text_end']) +
-            "-" +
-            str(tr_item['text2_text_start']) +
-            "-" +
-            str(tr_item['text2_text_end'])
-    )
-    hash_object = hashlib.sha256(hashstr.encode('utf-8'))
-    hex_dig = hash_object.hexdigest()
-    return hex_dig
-
-
-def assign_tr_id(tr_data):
-    for item in tr_data:
-        item['_id'] = get_tr_id(item)
-
-
+# Index text reuse data. These take longer.
 tr_mapping = {
     "properties": {
         'text1_id': {"type": "keyword"},
@@ -156,7 +163,7 @@ tr_index_name = "latin-textreuse-reuses"
 # deleting an index
 # client.indices.delete(index=tr_index_name)
 
-client.indices.create(index=tr_index_name, mappings=tr_mapping, settings=index_settings)
+# client.indices.create(index=tr_index_name, mappings=tr_mapping, settings=index_settings)
 
 file_i = 1
 for ndjsonfile in tr_datafiles:
