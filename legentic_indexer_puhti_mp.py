@@ -133,6 +133,9 @@ index_settings = {
 
 # create the index if it doesn't exist
 # client.indices.create(index=index_name, mappings=mapping, settings=index_settings)
+# deleting an index
+# client.indices.delete(index=index_name)
+
 
 already_indexed = read_indexed_log('legentic_indexed.log')
 
