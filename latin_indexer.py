@@ -139,6 +139,8 @@ helpers.bulk(client, reasonable_dict, index=index_name)
 # for item in tqdm(reasonable_dict):
 #     client.index(index=index_name, id=(item["doc_id"]), document=item)
 
+del reasonable_dict
+del reasonable_df
 
 # Index text reuse data. These take longer.
 tr_mapping = {
