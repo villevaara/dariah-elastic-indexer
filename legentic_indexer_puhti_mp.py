@@ -1,7 +1,7 @@
 from smart_open import open
 from elasticsearch import Elasticsearch, helpers
 import json
-from lib.utils import read_elastic_pwd, log_line, read_indexed_log
+from lib.utils import read_elastic_pwd, log_line, read_indexed_log, get_id_from_str
 import argparse
 from threading import Thread
 from threading import Lock
@@ -17,7 +17,8 @@ def get_allas_url_ndjson(allas_url, add_id=True):
         for doc in docs:
             thisdoc = doc['fields']
             if add_id:
-                thisdoc['_id'] = doc['fields']['url'].replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "")
+                thisdoc['_id'] = get_id_from_str(
+                    doc['fields']['url'].replace("https://", "").replace("http://", "").replace("/", "_").replace(":", ""))
             retdocs.append(thisdoc)
     return retdocs
 
@@ -31,6 +32,7 @@ def remap_inputdata(inputdata, remapping):
         else:
             remapped_data[k] = v
     return remapped_data
+
 
 # 'version' field caused problems in indexing. Discard for now.
 def fix_version_field(input_item):

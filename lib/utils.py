@@ -1,9 +1,11 @@
 import csv
 import json
 import sys
+import hashlib
 
 
 csv.field_size_limit(sys.maxsize)
+
 
 def get_json_file(ndjson_out, json_suffix):
     json_fname = ndjson_out.split(".ndjson")[0] + "_" + str(json_suffix) + ".ndjson"
@@ -44,3 +46,9 @@ def read_indexed_log(logfile):
         lines = f.readlines()
     lines = [line.strip() for line in lines]
     return lines
+
+
+def get_id_from_str(source_str):
+    hash_object = hashlib.sha256(source_str.encode('utf-8'))
+    hex_dig = hash_object.hexdigest()
+    return hex_dig
