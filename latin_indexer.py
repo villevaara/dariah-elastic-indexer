@@ -26,6 +26,8 @@ def read_ndjson(ndjson_file):
 
 def filter_tr_data_fields(tr_data):
     for item in tr_data:
+        item['text1_id'] = item['text1_id'].split('.')[0]
+        item['text2_id'] = item['text2_id'].split('.')[0]
         del item['text1_source']
         del item['text2_source']
 
