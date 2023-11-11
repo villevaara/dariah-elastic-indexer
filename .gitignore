@@ -3,3 +3,4 @@ venv
 lib/__pycache__
 .idea
 *.log
+data/nlf*
