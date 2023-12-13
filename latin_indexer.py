@@ -12,7 +12,7 @@ import argparse
 
 
 def read_id_text(txt_path, doc_id):
-    txt_f = txt_path + doc_id.split('.')[0] + ".txt"
+    txt_f = txt_path + doc_id + ".txt"
     with open(txt_f, 'r') as f:
         text = f.read()
     return text
@@ -34,9 +34,9 @@ def filter_tr_data_fields(tr_data):
 
 def get_tr_id(tr_item):
     hashstr = (
-            tr_item['text1_id'].split('.')[0] +
+            tr_item['text1_id'] +
             "-" +
-            tr_item['text2_id'].split('.')[0] +
+            tr_item['text2_id'] +
             "-" +
             str(tr_item['text1_text_start']) +
             "-" +
@@ -86,15 +86,15 @@ reasonable_df = reasonable_df.where((pd.notnull(reasonable_df)), None)
 reasonable_dict = reasonable_df.to_dict('records')
 
 
-xml_prefix = "https://a3s.fi/latin-tr/"
+# xml_prefix = "https://a3s.fi/latin-tr/"
 for i in reasonable_dict:
-    i['xml_url'] = xml_prefix + i['doc_id']
+    # i['xml_url'] = xml_prefix + i['doc_id'] + ".xml"
     i['txt'] = read_id_text(txt_path, i['doc_id'])
     if math.isnan(i['publication_stmt_date']):
         i['publication_stmt_date'] = None
     else:
         i['publication_stmt_date'] = str(int(i['publication_stmt_date']))
-    i['_id'] = i['doc_id'].split('.')[0]
+    i['_id'] = i['doc_id'].split('.xml')[0]
 
 
 mapping = {
@@ -114,8 +114,10 @@ mapping = {
         'title_stmt_author_ref': {"type": "keyword"},
         'title_stmt_author_date': {"type": "text"},
         'title_stmt_title': {"type": "text"},
-        'xml_url': {"type": 'keyword'},
+        # 'xml_url': {"type": 'keyword'},
         'txt': {"type": 'text'},
+        'is_bible': {"type": 'boolean'},
+        'chronology': {"type": 'integer'}
     }
 }
 
@@ -134,7 +136,7 @@ index_name = "latin-textreuse-text"
 # client.indices.delete(index=index_name)
 
 # create the index if it doesn't exist
-# client.indices.create(index=index_name, mappings=mapping)
+client.indices.create(index=index_name, mappings=mapping)
 
 print("Indexing texts.")
 helpers.bulk(client, reasonable_dict, index=index_name)
@@ -154,7 +156,10 @@ tr_mapping = {
         'text2_text_start': {"type": "integer"},
         'text2_text_end': {"type": "integer"},
         'align_length': {'type': 'integer'},
-        'positives_percent': {'type': 'float'}
+        'positives_percent': {'type': 'float'},
+        "text1_vulgata_overlap": {'type': 'integer'},
+        "text2_vulgata_overlap": {'type': 'integer'},
+        "avg_vulgata_overlap": {'type': 'integer'}
     }
 }
 
@@ -167,7 +172,7 @@ tr_index_name = "latin-textreuse-reuses"
 # deleting an index
 # client.indices.delete(index=tr_index_name)
 
-# client.indices.create(index=tr_index_name, mappings=tr_mapping, settings=index_settings)
+client.indices.create(index=tr_index_name, mappings=tr_mapping, settings=index_settings)
 
 file_i = 1
 for ndjsonfile in tr_datafiles:

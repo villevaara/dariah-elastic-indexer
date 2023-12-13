@@ -4,3 +4,5 @@ lib/__pycache__
 .idea
 *.log
 data/nlf*
+temp
+test_code/testres
