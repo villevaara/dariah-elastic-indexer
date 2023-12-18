@@ -41,10 +41,13 @@ def log_line(logfile, line):
         f.write(line + "\n")
 
 
-def read_indexed_log(logfile):
+def read_indexed_log(logfile, convert_to_int=False):
     with open(logfile, 'r') as f:
         lines = f.readlines()
-    lines = [line.strip() for line in lines]
+    if convert_to_int:
+        lines = [int(line.strip()) for line in lines]
+    else:
+        lines = [line.strip() for line in lines]
     return lines
 
 

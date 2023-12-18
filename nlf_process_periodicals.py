@@ -5,6 +5,10 @@ from smart_open import open
 import zipfile
 import json
 import argparse
+import re
+from lib.utils import read_elastic_pwd, log_line, read_indexed_log, get_id_from_str
+from elasticsearch import Elasticsearch, helpers
+import os
 
 
 def get_block_text(block):
@@ -66,34 +70,81 @@ def get_id_text_from_zip(item_id, zipfile_path):
     return this_text
 
 
-# with open("data/nlf_newspaper_meta.json", 'r') as jsonf:
-#     data = json.load(jsonf)
+def prepare_metadata(metadata, add_id=True):
+    new_meta = list()
+    for item in metadata:
+        new_item = dict()
+        for k, v in item.items():
+            if k in ['authors', 'terms', 'score']:
+                continue
+            new_key = re.sub(r'([A-Z])', r'_\1', k).lower()
+            new_item[new_key] = v
+        new_item['binding_id'] = str(new_item['binding_id'])
+        new_item['publication_date'] = new_item['date']
+        del new_item['date']
+        if add_id:
+            new_item['_id'] = new_item['binding_id']
+        new_meta.append(new_item)
+    return new_meta
 
-# 1. read metadata json into memory.
-# 2. take iteration n as parameter
-# 3. bulk index in blocks of 10.000
 
-# read each entry in metadata
-# unzip the relevant items into memory
-# add to indexing buffer until bulk index size is reached, then index all
+def write_bulk(client, items, index_name, logfile):
+    helpers.bulk(client, items, index=index_name)
+    processed_ids = "\n".join([str(item['binding_id']) for item in items])
+    log_line(logfile=logfile, line=processed_ids)
 
 
 # Get arguments for start and end index
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
-parser.add_argument('--id', type=str, help='ID to extract.')
-parser.add_argument('--zipfile', type=str, help='zipfile path.')
-parser.set_defaults(reindex=False)
+parser.add_argument('--zippath', type=str, help='zipfiles path.', required=True)
+parser.add_argument('--type', type=str, help='"journal" or "newspaper"', required=True)
 
 args = parser.parse_args()
+zip_path = args.zipfile
+data_subset = args.type
 
-# item_id = '38586'
-# this_zip = 'temp/realzip.zip'
+with open('data/nlf_' + data_subset + '_meta.json', 'r') as jsonf:
+    metadata = prepare_metadata(json.load(jsonf))
 
-item_id = args.id
-this_zip = args.zipfile
+ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
+client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
+                       basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
+index_name = "nlf-periodicals"
+
+logfile = "logs/nlf_indexer.log"
+if os.path.exists(logfile):
+    processed = read_indexed_log(logfile, convert_to_int=True)
+else:
+    processed = list()
+
+bulk_chunk_size = 1000
+bulk_buffer = list()
+
+for item in metadata:
+    if item['binding_id'] in processed:
+        continue
+    if str(item['binding_id'])[0] == '1':
+        zip_prefix = str(item['binding_id'])[:2]
+    else:
+        zip_prefix = str(item['binding_id'])[0]
+    this_zip_path = zip_path + "col-861_" + zip_prefix + ".zip"
+    this_text = get_id_text_from_zip(item_id=item['binding_id'], zipfile_path=this_zip_path)
+    if this_text == '':
+        continue
+    item['issue_text'] = this_text
+    bulk_buffer.append(item)
+    if len(bulk_buffer) == bulk_chunk_size:
+        write_bulk(client, bulk_buffer, index_name, logfile)
+        bulk_buffer.clear()
+
+if len(bulk_buffer) > 0:
+    write_bulk(client, bulk_buffer, index_name, logfile)
 
 
-this_text = get_id_text_from_zip(item_id, this_zip)
+#
+# this_text = get_id_text_from_zip("454545", 'temp/realzip.zip')
+#
+# with open(item_id + '.txt', 'w') as f:
+#     f.write(this_text)
 
-with open(item_id + '.txt', 'w') as f:
-    f.write(this_text)
+# unzip /scratch/project_2006633/nlf-harvester/zip/col-861_7.zip "*/70445/70445/*" -d $HOME/temp/nlf-metsalto
