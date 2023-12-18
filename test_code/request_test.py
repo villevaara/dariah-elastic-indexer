@@ -30,8 +30,11 @@ def write_paginated_results(paginated_generator, outputpath, item_count=1000):
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
 # Create the client instance
 # test env client
+# client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
+#                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
+
 client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
-                       basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
+                       basic_auth=("legentic_viewer", "leg-view"), request_timeout=60)
 
 index_name = "legentic"
 query_f = 'test_code/testquery.json'

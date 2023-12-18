@@ -21,7 +21,7 @@ mapping = {
         'issue': {"type": "keyword"},
         'import_date': {"type": "date", "format": "yyyy-MM-dd"},
         'date_accuracy': {"type": "keyword"},
-        'place_of_publication': {"type": "text"},
+        'place_of_publication': {"type": "keyword"},
         'url': {"type": "keyword"},
         'pdf_url': {"type": "keyword"},
         'base_url': {"type": "keyword"},
