@@ -101,8 +101,10 @@ def write_bulk(client, items, index_name, logfile, verbose=False):
 
 # Get arguments for start and end index
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
-parser.add_argument('--zippath', type=str, help='zipfiles path.', required=True)
+parser.add_argument('--zippath', type=str, help='Zip files path.', required=True)
 parser.add_argument('--type', type=str, help='"journal" or "newspaper"', required=True)
+parser.add_argument('--chunk', type=int, help='Bulk chunk size.', default=100)
+
 
 args = parser.parse_args()
 zip_path = args.zippath
@@ -122,7 +124,7 @@ if os.path.exists(logfile):
 else:
     processed = list()
 
-bulk_chunk_size = 1000
+bulk_chunk_size = args.chunk
 bulk_buffer = list()
 buffer_iter = 1
 max_i = math.ceil(len(metadata) / bulk_chunk_size)
