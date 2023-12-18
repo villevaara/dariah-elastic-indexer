@@ -1,4 +1,6 @@
 import fnmatch
+import math
+
 from lxml import etree
 from glob import glob
 from smart_open import open
@@ -88,10 +90,12 @@ def prepare_metadata(metadata, add_id=True):
     return new_meta
 
 
-def write_bulk(client, items, index_name, logfile):
+def write_bulk(client, items, index_name, logfile, verbose=False):
     helpers.bulk(client, items, index=index_name)
     processed_ids = "\n".join([str(item['binding_id']) for item in items])
     log_line(logfile=logfile, line=processed_ids)
+    if verbose:
+        print("Wrote {} items to {}".format(len(items), index_name))
 
 
 # Get arguments for start and end index
@@ -119,6 +123,8 @@ else:
 
 bulk_chunk_size = 1000
 bulk_buffer = list()
+buffer_iter = 1
+max_i = math.ceil(len(metadata) / bulk_chunk_size)
 
 for item in metadata:
     if item['binding_id'] in processed:
@@ -134,12 +140,17 @@ for item in metadata:
     item['issue_text'] = this_text
     bulk_buffer.append(item)
     if len(bulk_buffer) == bulk_chunk_size:
-        write_bulk(client, bulk_buffer, index_name, logfile)
+        write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
+        print("Iteration " + str(buffer_iter) + "/" + str(max_i))
+        buffer_iter += 1
         bulk_buffer.clear()
 
 if len(bulk_buffer) > 0:
-    write_bulk(client, bulk_buffer, index_name, logfile)
+    write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
+    print("Iteration " + str(buffer_iter) + "/" + str(max_i))
+    buffer_iter += 1
 
+print("Done.")
 
 #
 # this_text = get_id_text_from_zip("454545", 'temp/realzip.zip')
