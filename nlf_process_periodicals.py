@@ -11,6 +11,7 @@ import re
 from lib.utils import read_elastic_pwd, log_line, read_indexed_log, get_id_from_str
 from elasticsearch import Elasticsearch, helpers
 import os
+from tqdm import tqdm
 
 
 def get_block_text(block):
@@ -104,7 +105,7 @@ parser.add_argument('--zippath', type=str, help='zipfiles path.', required=True)
 parser.add_argument('--type', type=str, help='"journal" or "newspaper"', required=True)
 
 args = parser.parse_args()
-zip_path = args.zipfile
+zip_path = args.zippath
 data_subset = args.type
 
 with open('data/nlf_' + data_subset + '_meta.json', 'r') as jsonf:
@@ -126,7 +127,7 @@ bulk_buffer = list()
 buffer_iter = 1
 max_i = math.ceil(len(metadata) / bulk_chunk_size)
 
-for item in metadata:
+for item in tqdm(metadata):
     if item['binding_id'] in processed:
         continue
     if str(item['binding_id'])[0] == '1':
