@@ -127,6 +127,7 @@ for item in tqdm(metadata):
     this_zip_path = zip_path + "col-861_" + zip_prefix + ".zip"
     this_text = get_id_text_from_zip(item_id=item['binding_id'], zipfile_path=this_zip_path)
     if this_text == '':
+        print("No text for item " + item['binding_id'])
         continue
     item['issue_text'] = this_text
     bulk_buffer.append(item)
