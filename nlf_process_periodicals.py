@@ -13,6 +13,16 @@ import os
 from tqdm import tqdm
 
 
+def strip_ns_prefix(tree):
+    #xpath query for selecting all element nodes in namespace
+    query = "descendant-or-self::*[namespace-uri()!='']"
+    #for each element returned by the above xpath query...
+    for element in tree.xpath(query):
+        #replace element name with its local name
+        element.tag = etree.QName(element).localname
+    return tree
+
+
 def get_block_text(block):
     block_text = list()
     for item in block.findall(".//String"):
@@ -29,7 +39,7 @@ def get_block_text(block):
 def get_issue_text_from_strings(files_read):
     page_texts = list()
     for page_xml_s in files_read:
-        root = etree.fromstring(page_xml_s)
+        root = strip_ns_prefix(etree.fromstring(page_xml_s))
         page = root.find(".//Page")
         if page is not None:
             text_blocks = page.findall(".//TextBlock")
@@ -40,7 +50,7 @@ def get_issue_text_from_strings(files_read):
         else:
             page_text_s = ""
         page_texts.append(page_text_s)
-    page_texts_f = [text for text in page_texts if text != '']
+        page_texts_f = [text for text in page_texts if text != '']
     return "\n\n\n".join(page_texts_f)
 
 
