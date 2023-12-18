@@ -27,34 +27,19 @@ def get_block_text(block):
     return " ".join(block_text)
 
 
-def get_issue_text(issue_path):
-    pages = glob(issue_path + "alto/al-*.xml")
-    pages.sort()
-    page_texts = list()
-    for page_path in pages:
-        root = etree.parse(page_path).getroot()
-        # Print the loaded XML
-        page = root.find(".//Page")
-        text_blocks = page.findall(".//TextBlock")
-        page_text = list()
-        for text_block in text_blocks:
-            page_text.append(get_block_text(text_block))
-        page_text_s = "\n\n".join(page_text)
-        page_texts.append(page_text_s)
-    page_texts_f = [text for text in page_texts if text != '']
-    return "\n\n\n".join(page_texts_f)
-
-
 def get_issue_text_from_strings(files_read):
     page_texts = list()
     for page_xml_s in files_read:
         root = etree.fromstring(page_xml_s)
         page = root.find(".//Page")
-        text_blocks = page.findall(".//TextBlock")
-        page_text = list()
-        for text_block in text_blocks:
-            page_text.append(get_block_text(text_block))
-        page_text_s = "\n\n".join(page_text)
+        if page is not None:
+            text_blocks = page.findall(".//TextBlock")
+            page_text = list()
+            for text_block in text_blocks:
+                page_text.append(get_block_text(text_block))
+            page_text_s = "\n\n".join(page_text)
+        else:
+            page_text_s = ""
         page_texts.append(page_text_s)
     page_texts_f = [text for text in page_texts if text != '']
     return "\n\n\n".join(page_texts_f)
@@ -69,6 +54,9 @@ def get_id_text_from_zip(item_id, zipfile_path):
             for name in sorted_names:
                 if fnmatch.fnmatch(name, '*' + item_id + '/alto*.xml'):
                     files.append(zipf.read(name))
+    if len(files) == 0:
+        print("No xml files for item_id: {}".format(item_id))
+        return ""
     this_text = get_issue_text_from_strings(files)
     return this_text
 
