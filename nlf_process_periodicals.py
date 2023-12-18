@@ -2,13 +2,12 @@ import fnmatch
 import math
 
 from lxml import etree
-from glob import glob
 from smart_open import open
 import zipfile
 import json
 import argparse
 import re
-from lib.utils import read_elastic_pwd, log_line, read_indexed_log, get_id_from_str
+from lib.utils import read_elastic_pwd, log_line, read_indexed_log
 from elasticsearch import Elasticsearch, helpers
 import os
 from tqdm import tqdm
@@ -52,7 +51,7 @@ def get_id_text_from_zip(item_id, zipfile_path):
             sorted_names = list(zipf.namelist())
             sorted_names.sort()
             for name in sorted_names:
-                if fnmatch.fnmatch(name, '*' + item_id + '/alto*.xml'):
+                if fnmatch.fnmatch(name, '*' + item_id + '/alto/*.xml'):
                     files.append(zipf.read(name))
     if len(files) == 0:
         print("No xml files for item_id: {}".format(item_id))
@@ -124,7 +123,7 @@ for item in tqdm(metadata):
         zip_prefix = str(item['binding_id'])[:2]
     else:
         zip_prefix = str(item['binding_id'])[0]
-    this_zip_path = zip_path + "col-861_" + zip_prefix + ".zip"
+    this_zip_path = zip_path + "/col-861_" + zip_prefix + ".zip"
     this_text = get_id_text_from_zip(item_id=item['binding_id'], zipfile_path=this_zip_path)
     if this_text == '':
         print("No text for item " + item['binding_id'])
