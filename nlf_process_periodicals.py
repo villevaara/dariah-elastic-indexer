@@ -117,7 +117,7 @@ index_name = "nlf-periodicals"
 
 logfile = "logs/nlf_indexer.log"
 if os.path.exists(logfile):
-    processed = read_indexed_log(logfile, convert_to_int=True)
+    processed = read_indexed_log(logfile, convert_to_int=False)
 else:
     processed = list()
 
@@ -137,6 +137,7 @@ for item in tqdm(metadata):
     this_text = get_id_text_from_zip(item_id=item['binding_id'], zipfile_path=this_zip_path)
     if this_text == '':
         print("No text for item " + item['binding_id'])
+        log_line(logfile=logfile, line=item['binding_id'])
         continue
     item['issue_text'] = this_text
     bulk_buffer.append(item)
@@ -160,3 +161,4 @@ print("Done.")
 #     f.write(this_text)
 
 # unzip /scratch/project_2006633/nlf-harvester/zip/col-861_7.zip "*/70445/70445/*" -d $HOME/temp/nlf-metsalto
+# python nlf_process_periodicals.py --type "journal" --chunk 100 --zippath "/scratch/project_2006633/nlf-harvester/zip"
