@@ -61,7 +61,7 @@ def get_id_text_from_zip(item_id, zipfile_path):
             sorted_names = list(zipf.namelist())
             sorted_names.sort()
             for name in sorted_names:
-                if fnmatch.fnmatch(name, '*' + item_id + '/alto/*.xml'):
+                if fnmatch.fnmatch(name, '*/' + item_id + '/alto/*.xml'):
                     files.append(zipf.read(name))
     if len(files) == 0:
         print("No xml files for item_id: {}".format(item_id))
