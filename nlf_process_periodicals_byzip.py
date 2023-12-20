@@ -54,15 +54,11 @@ def get_issue_text_from_strings(files_read):
     return "\n\n\n".join(page_texts_f)
 
 
-def get_id_text_from_zip(item_id, zipfile_path):
+def get_id_text_from_archive(item_id, archive, sorted_names):
     files = []
-    with open(zipfile_path, 'rb') as fin:
-        with zipfile.ZipFile(fin) as zipf:
-            sorted_names = list(zipf.namelist())
-            sorted_names.sort()
-            for name in sorted_names:
-                if fnmatch.fnmatch(name, '*/' + item_id + '/alto/*.xml'):
-                    files.append(zipf.read(name))
+    for name in sorted_names:
+        if fnmatch.fnmatch(name, '*/' + item_id + '/alto/*.xml'):
+            files.append(archive.read(name))
     if len(files) == 0:
         print("No xml files for item_id: {}".format(item_id))
         return ""
@@ -96,11 +92,20 @@ def write_bulk(client, items, index_name, logfile, verbose=False):
         print("Wrote {} items to {}".format(len(items), index_name))
 
 
+def get_metadata_subset(metadata, id_prefix):
+    subset = [item for item in metadata if item['binding_id'][:len(id_prefix)] == id_prefix]
+    return subset
+
+
 # Get arguments for start and end index
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
 parser.add_argument('--zippath', type=str, help='Zip files path.', required=True)
 parser.add_argument('--type', type=str, help='"journal" or "newspaper"', required=True)
 parser.add_argument('--chunk', type=int, help='Bulk chunk size.', default=100)
+parser.add_argument('--prefix', type=str, help='Leading number of id to process.', required=True)
+parser.add_argument('--reindex', dest='reindex', action='store_true', help='Do not skip already indexed.')
+parser.add_argument('--no-reindex', dest='reindex', action='store_false', help='Skip indexed. Default.')
+parser.set_defaults(reindex=False)
 
 
 args = parser.parse_args()
@@ -109,6 +114,8 @@ data_subset = args.type
 
 with open('data/nlf_' + data_subset + '_meta.json', 'r') as jsonf:
     metadata = prepare_metadata(json.load(jsonf))
+
+metadata = get_metadata_subset(metadata, args.prefix)
 
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
 client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
@@ -126,15 +133,18 @@ bulk_buffer = list()
 buffer_iter = 1
 max_i = math.ceil(len(metadata) / bulk_chunk_size)
 
+this_zip_path = zip_path + "/col-861_" + args.prefix + ".zip"
+
+archive = zipfile.ZipFile("temp/realzip.zip", mode="r")
+archive = zipfile.ZipFile(this_zip_path, mode="r")
+sorted_names = archive.namelist()
+sorted_names.sort()
+
 for item in tqdm(metadata):
-    if item['binding_id'] in processed:
-        continue
-    if str(item['binding_id'])[0] == '1':
-        zip_prefix = str(item['binding_id'])[:2]
-    else:
-        zip_prefix = str(item['binding_id'])[0]
-    this_zip_path = zip_path + "/col-861_" + zip_prefix + ".zip"
-    this_text = get_id_text_from_zip(item_id=item['binding_id'], zipfile_path=this_zip_path)
+    if not args.reindex:
+        if item['binding_id'] in processed:
+            continue
+    this_text = get_id_text_from_archive(item_id=item['binding_id'], archive=archive, sorted_names=sorted_names)
     if this_text == '':
         print("No text for item " + item['binding_id'])
         log_line(logfile=logfile, line=item['binding_id'])
@@ -152,6 +162,7 @@ if len(bulk_buffer) > 0:
     print("Iteration " + str(buffer_iter) + "/" + str(max_i))
     buffer_iter += 1
 
+archive.close()
 print("Done.")
 
 #
