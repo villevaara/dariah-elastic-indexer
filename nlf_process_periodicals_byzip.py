@@ -135,7 +135,6 @@ max_i = math.ceil(len(metadata) / bulk_chunk_size)
 
 this_zip_path = zip_path + "/col-861_" + args.prefix + ".zip"
 
-archive = zipfile.ZipFile("temp/realzip.zip", mode="r")
 archive = zipfile.ZipFile(this_zip_path, mode="r")
 sorted_names = archive.namelist()
 sorted_names.sort()
@@ -172,7 +171,7 @@ print("Done.")
 #     f.write(this_text)
 
 # unzip /scratch/project_2006633/nlf-harvester/zip/col-861_7.zip "*/70445/70445/*" -d $HOME/temp/nlf-metsalto
-# python nlf_process_periodicals.py --type "journal" --chunk 100 --zippath "/scratch/project_2006633/nlf-harvester/zip"
+# python nlf_process_periodicals_byzip.py --type "journal" --chunk 100 --zippath "/scratch/project_2006633/nlf-harvester/zip" --prefix "10"
 
 # TODO:
 # 1. process one zip at time (add parameter for zip/id prefix)
