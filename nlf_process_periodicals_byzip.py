@@ -130,8 +130,6 @@ else:
 
 bulk_chunk_size = args.chunk
 bulk_buffer = list()
-buffer_iter = 1
-max_i = math.ceil(len(metadata) / bulk_chunk_size)
 
 this_zip_path = zip_path + "/col-861_" + args.prefix + ".zip"
 
@@ -152,14 +150,10 @@ for item in tqdm(metadata):
     bulk_buffer.append(item)
     if len(bulk_buffer) == bulk_chunk_size:
         write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
-        print("Iteration " + str(buffer_iter) + "/" + str(max_i))
-        buffer_iter += 1
         bulk_buffer.clear()
 
 if len(bulk_buffer) > 0:
     write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
-    print("Iteration " + str(buffer_iter) + "/" + str(max_i))
-    buffer_iter += 1
 
 archive.close()
 print("Done.")
