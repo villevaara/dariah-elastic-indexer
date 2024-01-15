@@ -39,8 +39,12 @@ def get_block_text(block):
 def get_issue_text_from_strings(files_read):
     page_texts = list()
     for page_xml_s in files_read:
-        root = strip_ns_prefix(etree.fromstring(page_xml_s))
-        page = root.find(".//Page")
+        try:
+            root = strip_ns_prefix(etree.fromstring(page_xml_s))
+            page = root.find(".//Page")
+        except etree.XMLSyntaxError:
+            print('Skipping invalid XML file.')
+            page = None
         if page is not None:
             text_blocks = page.findall(".//TextBlock")
             page_text = list()
