@@ -124,7 +124,7 @@ mapping = {
 
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
 # Create the client instance
-client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
+client = Elasticsearch("https://dariahfi-es.2.rahtiapp.fi:443",
                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
 
 # index_settings = {
@@ -138,7 +138,8 @@ index_name = "latin-textreuse-text"
 # create the index if it doesn't exist
 client.indices.create(index=index_name, mappings=mapping)
 
-print("Indexing texts.")
+print("Indexing texts to index: " + index_name)
+print("Total texts: " + str(len(reasonable_dict)))
 helpers.bulk(client, reasonable_dict, index=index_name)
 # for item in tqdm(reasonable_dict):
 #     client.index(index=index_name, id=(item["doc_id"]), document=item)
@@ -164,10 +165,14 @@ tr_mapping = {
 }
 
 index_settings = {
-    'number_of_shards': 10
+    'number_of_shards': 2
 }
 
 tr_index_name = "latin-textreuse-reuses"
+chunk_size = 50000
+
+print("Indexing reuses to index: " + tr_index_name)
+print("Chunk size: " + str(n))
 
 # deleting an index
 # client.indices.delete(index=tr_index_name)
@@ -181,7 +186,7 @@ for ndjsonfile in tr_datafiles:
     filter_tr_data_fields(this_data)
     assign_tr_id(this_data)
     # Break the list into chunks using list comprehension to allow bulk indexing.
-    n = 50000
+    n = chunk_size
     this_data_chunks = [this_data[i:i + n] for i in range(0, len(this_data), n)]
     for chunk in tqdm(this_data_chunks):
         helpers.bulk(client, chunk, index=tr_index_name)

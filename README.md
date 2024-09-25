@@ -8,9 +8,13 @@ The main components are data wranglers that make the input data ready for indexi
 
 ## legentic_indexer_puhti.py
 
-Accepts some command line parameters to allow indexing a lsice of source files. Eg.:
+Accepts some command line parameters to allow indexing a slice of source files. Eg.:
 
 `python legentic_indexer_puhti.py --start 20000 --end 30000`
 
 If you want to reindex already indexed files, either empty the logfile of successfully indexed ones (`legentic_indexed.log`),
 or set the re-index parameter `--reindex`.
+
+## Parameters
+
+Number of shards depends on the overall data size. A helpful formula can be found here: https://nsvarun14.medium.com/capacity-planning-for-elasticsearch-cde3c0693add

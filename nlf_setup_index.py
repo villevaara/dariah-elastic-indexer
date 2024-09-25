@@ -2,7 +2,7 @@ from elasticsearch import Elasticsearch
 from lib.utils import read_elastic_pwd
 
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
-client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
+client = Elasticsearch("https://dariahfi-es.2.rahtiapp.fi:443",
                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
 index_name = "nlf-periodicals"
 
