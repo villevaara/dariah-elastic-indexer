@@ -109,6 +109,8 @@ parser.add_argument('--chunk', type=int, help='Bulk chunk size.', default=100)
 parser.add_argument('--prefix', type=str, help='Leading number of id to process.', required=True)
 parser.add_argument('--reindex', dest='reindex', action='store_true', help='Do not skip already indexed.')
 parser.add_argument('--no-reindex', dest='reindex', action='store_false', help='Skip indexed. Default.')
+parser.add_argument('--tqdm', dest='tqdm', action='store_true', help='Use tqdm for prgress bar.')
+parser.add_argument('--no-tqdm', dest='tqdm', action='store_false', help='Do not use tqdm. Default.')
 parser.set_defaults(reindex=False)
 
 
@@ -141,7 +143,12 @@ archive = zipfile.ZipFile(this_zip_path, mode="r")
 sorted_names = archive.namelist()
 sorted_names.sort()
 
-for item in tqdm(metadata):
+if args.tqdm:
+    to_iter = tqdm(metadata)
+else:
+    to_iter = metadata
+
+for item in to_iter:
     if not args.reindex:
         if item['binding_id'] in processed:
             continue
@@ -161,16 +168,3 @@ if len(bulk_buffer) > 0:
 
 archive.close()
 print("Done.")
-
-#
-# this_text = get_id_text_from_zip("454545", 'temp/realzip.zip')
-#
-# with open(item_id + '.txt', 'w') as f:
-#     f.write(this_text)
-
-# unzip /scratch/project_2006633/nlf-harvester/zip/col-861_7.zip "*/70445/70445/*" -d $HOME/temp/nlf-metsalto
-# python nlf_process_periodicals_byzip.py --type "journal" --chunk 100 --zippath "/scratch/project_2006633/nlf-harvester/zip" --prefix "10"
-
-# TODO:
-# 1. process one zip at time (add parameter for zip/id prefix)
-# 2. Add reindex -parameter
