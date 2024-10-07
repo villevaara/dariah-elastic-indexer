@@ -148,7 +148,14 @@ if args.tqdm:
 else:
     to_iter = metadata
 
+# print progress to std out
+max_i = len(to_iter)
+i = 0
+print_step = 1000
+verbose_logging = True
+
 for item in to_iter:
+    i += 1
     if not args.reindex:
         if item['binding_id'] in processed:
             continue
@@ -160,11 +167,14 @@ for item in to_iter:
     item['issue_text'] = this_text
     bulk_buffer.append(item)
     if len(bulk_buffer) == bulk_chunk_size:
-        write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
+        write_bulk(client, bulk_buffer, index_name, logfile, verbose=False)
         bulk_buffer.clear()
+    if verbose_logging and (i % print_step == 0):
+        print("indexed: " + str(i) + "/" + str(max_i))
+
 
 if len(bulk_buffer) > 0:
-    write_bulk(client, bulk_buffer, index_name, logfile, verbose=True)
+    write_bulk(client, bulk_buffer, index_name, logfile, verbose=False)
 
 archive.close()
 print("Done.")
