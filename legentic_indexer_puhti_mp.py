@@ -162,7 +162,7 @@ def process_queue_item(this_q, client, index_name, remappings, lock, already_ind
                 helpers.bulk(client, input_remapped, index=index_name)
                 printline = (this_item + " - done.")
                 with lock:
-                    log_line(logfile="legentic_indexed.log", line=this_item)
+                    log_line(logfile="logs/legentic_indexed.log", line=this_item)
             else:
                 printline = ("!! Skipping " + this_item + " - already indexed.")
             with lock:
