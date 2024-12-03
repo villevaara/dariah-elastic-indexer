@@ -65,10 +65,8 @@ with open('data/legentic_remappings.json', 'r') as jsonfile:
 ELASTIC_PASSWORD = read_elastic_pwd("./secrets.txt")
 # Create the client instance
 # test env client
-client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
+client = Elasticsearch("https://dariahfi-es.2.rahtiapp.fi:443",
                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
-# client = Elasticsearch("https://ds-es.rahtiapp.fi:443",
-#                        basic_auth=("elastic", ELASTIC_PASSWORD), request_timeout=60)
 index_name = "legentic"
 
 mapping = {
@@ -132,18 +130,13 @@ index_settings = {
     'codec': 'best_compression'
 }
 
-# create the index if it doesn't exist
-# client.indices.create(index=index_name, mappings=mapping, settings=index_settings)
-# deleting an index
-# client.indices.delete(index=index_name)
-
 
 already_indexed = read_indexed_log('legentic_indexed.log')
 
 # Get arguments for start and end index
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
-parser.add_argument('--start', type=int, help='First iter to process.')
-parser.add_argument('--end', type=int, help='First iter to not process.')
+parser.add_argument('--start', type=int, help='First iter to process. Optional.')
+parser.add_argument('--end', type=int, help='First iter to not process. Optional.')
 parser.add_argument('--reindex', dest='reindex', action='store_true', help='Do not skip already indexed.')
 parser.add_argument('--no-reindex', dest='reindex', action='store_false', help='Skip indexed. Default.')
 parser.add_argument('--threads', type=int, help='Number of threads to use. Default 1.', default=1)
@@ -198,11 +191,3 @@ for item in allas_subset:
 
 this_q.join()
 running = False
-
-#
-# # changing settings:
-# client.indices.get_settings(index=index_name) # check current settings
-# client.indices.close(index=index_name) # index needs to be closed for codec setting to be changeable
-# client.indices.put_settings(index=index_name, settings={'codec': 'best_compression'})
-# client.indices.open(index=index_name)
-# client.indices.forcemerge(index=index_name, max_num_segments=1)

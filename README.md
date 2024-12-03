@@ -18,3 +18,9 @@ or set the re-index parameter `--reindex`.
 ## Parameters
 
 Number of shards depends on the overall data size. A helpful formula can be found here: https://nsvarun14.medium.com/capacity-planning-for-elasticsearch-cde3c0693add
+
+## TODO:
+
+Times:
+* Times for year 2010 is in new format, not yet covered.
+* ~5% of the xml files are broken. Investigate further?
