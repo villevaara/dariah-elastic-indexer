@@ -131,7 +131,8 @@ index_settings = {
 }
 
 
-already_indexed = read_indexed_log('legentic_indexed.log')
+logf_path = "logs/legentic_indexed.log"
+already_indexed = read_indexed_log(logf_path)
 
 # Get arguments for start and end index
 parser = argparse.ArgumentParser(description='Optional: Input start and end iterations.')
@@ -162,7 +163,7 @@ def process_queue_item(this_q, client, index_name, remappings, lock, already_ind
                 helpers.bulk(client, input_remapped, index=index_name)
                 printline = (this_item + " - done.")
                 with lock:
-                    log_line(logfile="logs/legentic_indexed.log", line=this_item)
+                    log_line(logfile=logf_path, line=this_item)
             else:
                 printline = ("!! Skipping " + this_item + " - already indexed.")
             with lock:

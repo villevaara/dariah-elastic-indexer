@@ -2,6 +2,7 @@ import csv
 import json
 import sys
 import hashlib
+import os
 
 
 csv.field_size_limit(sys.maxsize)
@@ -42,6 +43,8 @@ def log_line(logfile, line):
 
 
 def read_indexed_log(logfile, convert_to_int=False):
+    if not os.path.exists(logfile):
+        return []
     with open(logfile, 'r') as f:
         lines = f.readlines()
     if convert_to_int:
