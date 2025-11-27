@@ -26,10 +26,11 @@ def read_ndjson(ndjson_file):
 
 def filter_tr_data_fields(tr_data):
     for item in tr_data:
-        item['text1_id'] = item['text1_id'].split('.')[0]
-        item['text2_id'] = item['text2_id'].split('.')[0]
         del item['text1_source']
         del item['text2_source']
+        bool_map = {"True": True, "False": False}
+        item['text1_is_bible'] = bool_map.get(item['text1_is_bible'])
+        item['text2_is_bible'] = bool_map.get(item['text2_is_bible'])
 
 
 def get_tr_id(tr_item):
@@ -151,16 +152,26 @@ del reasonable_df
 tr_mapping = {
     "properties": {
         'text1_id': {"type": "keyword"},
+        "text1_author": {"type": "keyword"},
+        "text1_title": {"type": "keyword"},
         'text1_text_start': {"type": "integer"},
         'text1_text_end': {"type": "integer"},
+        'text1_text': {"type": "text"},
+        "text1_chronology": {"type": "integer"},
+        "text1_is_bible": {"type": "boolean"},
+        "text1_vulgata_overlap": {'type': 'integer'},
         'text2_id': {"type": "keyword"},
+        "text2_author": {"type": "keyword"},
+        "text2_title": {"type": "keyword"},
         'text2_text_start': {"type": "integer"},
         'text2_text_end': {"type": "integer"},
+        'text2_text': {"type": "text"},
+        "text2_chronology": {"type": "integer"},
+        "text2_is_bible": {"type": "boolean"},
+        "text2_vulgata_overlap": {'type': 'integer'},
         'align_length': {'type': 'integer'},
         'positives_percent': {'type': 'float'},
-        "text1_vulgata_overlap": {'type': 'integer'},
-        "text2_vulgata_overlap": {'type': 'integer'},
-        "avg_vulgata_overlap": {'type': 'integer'}
+        "avg_vulgata_overlap": {'type': 'integer'},
     }
 }
 
@@ -172,7 +183,7 @@ tr_index_name = "latin-textreuse-reuses"
 chunk_size = 50000
 
 print("Indexing reuses to index: " + tr_index_name)
-print("Chunk size: " + str(n))
+print("Chunk size: " + str(chunk_size))
 
 # deleting an index
 # client.indices.delete(index=tr_index_name)
