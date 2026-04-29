@@ -12,12 +12,16 @@ mapping = {
         'article_ocr_quality': {"type": "scaled_float", "scaling_factor": 100}, # actually and int, saves space
         'article_id': {"type": "keyword"},
         'article_type': {"type": "keyword"},
-        'article_title': {"type": "keyword"},
-        'article_title_additional': {"type": "keyword"},
-        'section_title': {"type": "keyword"},
+        'article_title': {"type": "text"},
+        'article_title_additional': {"type": "text"},
+        'article_title_kw': {"type": "keyword"},
+        'article_title_additional_kw': {"type": "keyword"},
+        'section_title': {"type": "text"},
+        'section_title_kw': {"type": "keyword"},
         'article_page_count': {"type": "integer"},
         'article_illustration_count': {"type": "integer"},
-        'article_authors': {"type": "keyword"}, # Array
+        'article_authors': {"type": "text"}, # Array
+        'article_authors_kw': {"type": "keyword"}, # Array
         'article_authors_count': {"type": "integer"},
         'article_text': {'type': 'text'},
         'article_text_token_count': {"type": "integer"},

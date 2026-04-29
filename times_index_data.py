@@ -77,3 +77,4 @@ for xml_file in all_files:
     write_bulk(client, index_name, xml_file, logfile, verbose=False) # log xml filename
     if verbose_logging:
         print("indexed: " + xml_file)
+

@@ -110,18 +110,22 @@ def get_article_data(article_element):
     retdata['article_title'] = get_multifield_text_if_exists(article_element, ".//ti")
     if retdata['article_title'] is not None:
         retdata['article_title'] = retdata['article_title'].strip('.,')
+    retdata['article_title_kw'] = retdata['article_title']
     retdata['article_title_additional'] = get_multifield_text_if_exists(article_element, ".//ta")
     if retdata['article_title_additional'] is not None:
         retdata['article_title_additional'] = retdata['article_title_additional'].strip('.,')
+    retdata['article_title_additional_kw'] = retdata['article_title_additional']
     retdata['section_title'] = get_multifield_text_if_exists(article_element, ".//ct")
     if retdata['section_title'] is not None:
         retdata['section_title'] = retdata['section_title'].strip('.,')
+    retdata['section_title_kw'] = retdata['section_title']
     retdata['article_page_count'] = get_field_text_if_exists(article_element, ".//pc")
     # number of illustration <il>
     # or: illustrations, with caption text, type, etc
     # Illustrations should probably be indexed as either nested or flattened object datatype. For now, just count the number
     retdata['article_illustration_count'] = len(article_element.findall('.//il'))
     retdata['article_authors'] = get_article_authors(article_element)
+    retdata['article_authors_kw'] = retdata['article_authors']
     retdata['article_authors_count'] = len(retdata['article_authors'])
     retdata['article_text'] = get_article_text(article_element)
     if retdata['article_text'] is not None:
